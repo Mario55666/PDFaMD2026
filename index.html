@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Investigador de PDF a Markdown</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs" type="module"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -702,6 +703,96 @@
       box-shadow: 0 0 10px rgba(255, 0, 60, 0.15);
     }
 
+    /* Results download toolbar */
+    .results-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+      padding: 0.85rem 1rem;
+      background: rgba(0, 245, 255, 0.04);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--neon-cyan);
+      border-radius: 2px;
+    }
+
+    .btn-download-all, .btn-download-zip {
+      padding: 0.6rem 1.1rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+
+    .btn-download-all {
+      background: linear-gradient(135deg, var(--neon-cyan), #00b8c4);
+      color: #04121a;
+      box-shadow: 0 4px 18px rgba(0, 245, 255, 0.3);
+    }
+    .btn-download-all:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 26px rgba(0, 245, 255, 0.5);
+    }
+
+    .btn-download-zip {
+      background: transparent;
+      color: var(--neon-purple);
+      border: 1px solid var(--neon-purple);
+    }
+    .btn-download-zip:hover:not(:disabled) {
+      background: rgba(123, 44, 255, 0.12);
+      box-shadow: 0 0 15px rgba(123, 44, 255, 0.25);
+    }
+
+    .btn-download-all:disabled, .btn-download-zip:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-download-all svg, .btn-download-zip svg { width: 15px; height: 15px; }
+
+    .dl-progress {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--neon-cyan);
+      margin-left: auto;
+    }
+
+    /* Per-file download indicator */
+    .dl-state {
+      display: inline-block;
+      margin-top: 0.4rem;
+      font-size: 0.62rem;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.15rem 0.5rem;
+      border-radius: 2px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .dl-state.downloading {
+      color: var(--neon-yellow);
+      border-color: rgba(255, 230, 0, 0.4);
+      animation: dlpulse 1s ease-in-out infinite;
+    }
+    .dl-state.done {
+      color: var(--neon-green);
+      border-color: rgba(0, 255, 136, 0.4);
+      box-shadow: 0 0 8px rgba(0, 255, 136, 0.2);
+    }
+    @keyframes dlpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
     .result-card {
       background: var(--bg-panel);
       border: 1px solid var(--border);
@@ -1268,6 +1359,24 @@
         <h2 class="glow-purple">RESULTADOS</h2>
         <span class="badge badge-success" id="resultsBadge">0 de 0 OK</span>
       </div>
+
+      <!-- Barra de descarga masiva + progreso -->
+      <div class="results-toolbar hidden" id="resultsToolbar">
+        <button class="btn-download-all" id="btnDownloadAll" onclick="downloadAll()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+          </svg>
+          DESCARGAR TODOS (.MD)
+        </button>
+        <button class="btn-download-zip" id="btnDownloadZip" onclick="downloadAllZip()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776"/>
+          </svg>
+          DESCARGAR ZIP
+        </button>
+        <span class="dl-progress" id="dlProgress"></span>
+      </div>
+
       <div id="resultsList"></div>
     </div>
 
@@ -1674,7 +1783,7 @@
         id: genId(), filename, success: true,
         pages: numPages, title: meta.info?.Title || '', author: meta.info?.Author || '',
         markdown, characters: markdown.length, lines: markdown.split('\n').length,
-        expanded: false
+        expanded: false, downloaded: false
       };
     }
 
@@ -1735,6 +1844,7 @@
                     <span>LIN:${result.lines.toLocaleString('es-ES')}</span>
                     ${result.title ? `<span>TIT:"${escapeHtml(result.title)}"</span>` : ''}
                   </div>
+                  <div class="dl-state ${result.downloaded ? 'done' : ''}" id="dl-state-${result.id}">${result.downloaded ? 'DESCARGADO ✓' : 'SIN DESCARGAR'}</div>
                 </div>
               </div>
               <div class="result-buttons">
@@ -1786,6 +1896,11 @@
         container.appendChild(card);
       });
 
+      // Mostrar la barra de "descargar todos" solo si hay conversiones exitosas
+      const toolbar = document.getElementById('resultsToolbar');
+      if (successes > 0) toolbar.classList.remove('hidden');
+      else toolbar.classList.add('hidden');
+
       document.getElementById('btnClearAll').classList.remove('hidden');
     }
 
@@ -1811,21 +1926,110 @@
       }, 2000);
     };
 
-    window.downloadMarkdown = function(id) {
-      const result = results.find(r => r.id === id);
-      if (!result) return;
+    // ---- Utilidades de descarga ----
+    function mdFileName(result) { return result.filename.replace(/\.pdf$/i, '.md'); }
+
+    function buildMdContent(result) {
       const header = result.title
         ? `---\ntitle: "${result.title}"\nauthor: "${result.author}"\npages: ${result.pages}\nsource_file: "${result.filename}"\n---\n\n`
         : '';
-      const blob = new Blob([header + result.markdown], { type: 'text/markdown;charset=utf-8' });
+      return header + result.markdown;
+    }
+
+    function triggerBlobDownload(blob, filename) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = result.filename.replace(/\.pdf$/i, '.md');
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    // Indicador por archivo: 'downloading' | 'done'
+    function setDownloadState(id, state) {
+      const result = results.find(r => r.id === id);
+      if (result && state === 'done') result.downloaded = true;
+      const chip = document.getElementById('dl-state-' + id);
+      if (!chip) return;
+      const LABEL = { idle: 'SIN DESCARGAR', downloading: 'DESCARGANDO…', done: 'DESCARGADO ✓' };
+      chip.className = 'dl-state ' + (state === 'idle' ? '' : state);
+      chip.textContent = LABEL[state];
+    }
+
+    const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+
+    // Descarga de un único archivo (boton individual de cada tarjeta)
+    window.downloadMarkdown = function(id) {
+      const result = results.find(r => r.id === id);
+      if (!result || !result.success) return;
+      setDownloadState(id, 'downloading');
+      triggerBlobDownload(new Blob([buildMdContent(result)], { type: 'text/markdown;charset=utf-8' }), mdFileName(result));
+      setDownloadState(id, 'done');
+    };
+
+    // Descargar TODOS como archivos .md individuales (con indicador por archivo)
+    window.downloadAll = async function() {
+      const ok = results.filter(r => r.success);
+      if (ok.length === 0) return;
+
+      const btn = document.getElementById('btnDownloadAll');
+      const btnZip = document.getElementById('btnDownloadZip');
+      const prog = document.getElementById('dlProgress');
+      btn.disabled = true; btnZip.disabled = true;
+
+      let done = 0;
+      for (const result of ok) {
+        setDownloadState(result.id, 'downloading');
+        prog.textContent = `Descargando ${done + 1}/${ok.length}: ${mdFileName(result)}`;
+        triggerBlobDownload(new Blob([buildMdContent(result)], { type: 'text/markdown;charset=utf-8' }), mdFileName(result));
+        await sleep(400); // escalonado: el navegador no bloquea y el indicador es visible
+        setDownloadState(result.id, 'done');
+        done++;
+        prog.textContent = `Descargados ${done}/${ok.length} ✓`;
+      }
+
+      btn.disabled = false; btnZip.disabled = false;
+      showToast(`Se descargaron <b>${done}</b> archivo(s) .md`, 'success');
+    };
+
+    // Descargar TODOS empaquetados en un único .zip
+    window.downloadAllZip = async function() {
+      const ok = results.filter(r => r.success);
+      if (ok.length === 0) return;
+
+      if (typeof JSZip === 'undefined') {
+        showToast('Motor ZIP no disponible (sin conexión). Usa <b>DESCARGAR TODOS (.MD)</b>.', 'warn');
+        return;
+      }
+
+      const btn = document.getElementById('btnDownloadAll');
+      const btnZip = document.getElementById('btnDownloadZip');
+      const prog = document.getElementById('dlProgress');
+      btn.disabled = true; btnZip.disabled = true;
+
+      const zip = new JSZip();
+      const used = {};
+      let i = 0;
+      for (const result of ok) {
+        setDownloadState(result.id, 'downloading');
+        let name = mdFileName(result);
+        if (used[name]) { name = name.replace(/\.md$/i, '') + '-' + (++used[name]) + '.md'; }
+        else { used[mdFileName(result)] = 1; }
+        zip.file(name, buildMdContent(result));
+        setDownloadState(result.id, 'done');
+        i++;
+        prog.textContent = `Empaquetando ${i}/${ok.length}…`;
+      }
+
+      prog.textContent = 'Generando .zip…';
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const stamp = new Date().toISOString().slice(0, 10);
+      triggerBlobDownload(blob, `markdown_${stamp}.zip`);
+      prog.textContent = `ZIP listo: ${ok.length} archivo(s) ✓`;
+      btn.disabled = false; btnZip.disabled = false;
+      showToast(`ZIP con <b>${ok.length}</b> archivo(s) .md descargado`, 'success');
     };
 
     window.togglePreview = function(id) {
