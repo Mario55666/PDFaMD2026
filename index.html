@@ -207,67 +207,37 @@
       letter-spacing: 1px;
     }
 
-    /* IDC logo / brand */
+    /* IDC logo / brand (imagen original) */
     .header-mark {
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .idc-mark-sm {
-      height: 38px;
+    .idc-logo-header {
+      height: 44px;
       width: auto;
-      color: #fff;
-      filter: drop-shadow(0 0 6px rgba(0, 245, 255, 0.45));
+      display: block;
+      object-fit: contain;
     }
 
     .idc-lockup {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.85rem;
     }
 
-    .idc-mark-lg {
-      height: 62px;
-      width: auto;
-      color: #fff;
-      flex-shrink: 0;
-      filter: drop-shadow(0 0 10px rgba(0, 245, 255, 0.35));
-    }
-
-    .idc-words {
-      display: flex;
-      flex-direction: column;
-      line-height: 1.02;
-    }
-
-    .idc-words .l1,
-    .idc-words .l2 {
-      font-family: 'Inter', sans-serif;
-      font-weight: 300;
-      font-size: 1.6rem;
-      letter-spacing: -0.5px;
-      color: #f2f2ff;
-      -webkit-text-stroke: 0.4px rgba(255, 255, 255, 0.55);
-    }
-
-    .idc-words .l2 { font-weight: 400; }
-
-    .idc-sub {
-      font-family: 'Inter', sans-serif;
-      font-size: 0.72rem;
-      font-weight: 400;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      border-top: 1px solid var(--border);
-      padding-top: 0.5rem;
+    .idc-logo-full {
+      width: 100%;
+      max-width: 360px;
+      height: auto;
+      display: block;
+      object-fit: contain;
     }
 
     @media (max-width: 520px) {
-      .idc-mark-lg { height: 48px; }
-      .idc-words .l1, .idc-words .l2 { font-size: 1.25rem; }
+      .idc-logo-header { height: 34px; }
+      .idc-logo-full { max-width: 260px; }
     }
 
     .blink { animation: blink 1s step-end infinite; }
@@ -1191,13 +1161,7 @@
   <header class="header">
     <div class="header-brand">
       <div class="header-mark" aria-label="Logo IDC">
-        <svg class="idc-mark-sm" viewBox="0 0 270 150" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="idc">
-          <circle cx="26" cy="24" r="15"/>
-          <rect x="13" y="46" width="26" height="92" rx="13"/>
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M95 50a42 42 0 1 0 0 84 42 42 0 0 0 0-84Zm0 24a18 18 0 1 1 0 36 18 18 0 0 1 0-36Z"/>
-          <rect x="119" y="12" width="26" height="126" rx="13"/>
-          <path d="M239 59.8A42 42 0 1 0 239 124.2" fill="none" stroke="currentColor" stroke-width="26" stroke-linecap="round"/>
-        </svg>
+        <img src="Logo_IDCblanco.png" width="221" height="83" alt=""/>
       </div>
       <div>
         <div class="header-title glow-cyan">Investigador de PDF a Markdown <span class="blink">_</span></div>
@@ -1213,21 +1177,8 @@
 
     <!-- Intro: por qué Markdown en lugar de PDF con IA -->
     <section class="intro">
-      <!-- Logo oficial IDC -->
-      <div class="idc-lockup">
-        <svg class="idc-mark-lg" viewBox="0 0 270 150" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="idc diseño y comunicación">
-          <circle cx="26" cy="24" r="15"/>
-          <rect x="13" y="46" width="26" height="92" rx="13"/>
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M95 50a42 42 0 1 0 0 84 42 42 0 0 0 0-84Zm0 24a18 18 0 1 1 0 36 18 18 0 0 1 0-36Z"/>
-          <rect x="119" y="12" width="26" height="126" rx="13"/>
-          <path d="M239 59.8A42 42 0 1 0 239 124.2" fill="none" stroke="currentColor" stroke-width="26" stroke-linecap="round"/>
-        </svg>
-        <div class="idc-words">
-          <span class="l1">diseño &amp;</span>
-          <span class="l2">comunicación</span>
-        </div>
-      </div>
-      <div class="idc-sub">Instituto de Educación Superior Público</div>
+      <!-- Logo oficial IDC (imagen original, sin alterar) -->
+      <div class="idc-lockup"> </div>
 
       <h1>Investigador de PDF a Markdown</h1>
       <p>
